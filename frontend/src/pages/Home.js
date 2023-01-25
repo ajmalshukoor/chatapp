@@ -36,7 +36,7 @@ const Home = () => {
   }, [message])
 
   useEffect(() => {
-    arrivalMessage && convoId?.members.includes(sender) && setMessage((prev) => [...prev, arrivalMessage])
+    arrivalMessage && convoId.members.includes(arrivalMessage.sender) &&setMessage((prev) => [...prev, arrivalMessage])
   }, [arrivalMessage])
 
   useEffect(() => {

@@ -27,6 +27,7 @@ io.on("connection", (socket) => {
 
     socket.on("sendMessage", ({senderId, recipientId, text}) => {
         const user = getUser(recipientId)
+        console.log(user)
         io.to(user.socketId).emit("getMessage", {
             senderId,
             text
