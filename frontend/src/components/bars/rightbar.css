@@ -1,0 +1,15 @@
+.rightbar{
+    flex: 3;
+    height: calc(100vh - 50px);
+    overflow-y: scroll;
+}
+
+.rightbarHeading{
+    text-align: center;
+    margin-bottom: 5px;
+    color:#5E4A9D;
+}
+
+.rightbarWrapper{
+    padding: 20px;
+}
