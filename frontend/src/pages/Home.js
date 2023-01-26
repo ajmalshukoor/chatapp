@@ -3,7 +3,7 @@ import {Search, Send} from '@material-ui/icons'
 import { useId } from '../hooks/useId'
 import { useMessageContext } from '../hooks/useMessageContext'
 import {io} from 'socket.io-client'
-import TopBar from '../components/bars/Topbar'
+import {useLogout} from '../hooks/useLogout'
 import Conversation from '../components/Conversation'
 import Message from '../components/Message'
 import Online from '../components/Online'
@@ -16,10 +16,23 @@ const Home = () => {
   const {convoId} = useMessageContext()
   const [message, setMessage] = useState([])
   const [arrivalMessage, setArrivalMessage] = useState(null)
+  const [allUsers, setAllUsers] = useState([])
+  const [allMembers, setAllMembers] = useState([])
+  const [onlineUsers, setOnlineUsers] = useState([])
   const scrollRef = useRef(null)
   const socket = useRef()
   const conversationId = convoId.id
+  const {logout} = useLogout()
+  const [bool, setBool] = useState()
 
+  const handleClick = () => {
+      logout()
+  }
+
+  const convoAdded = (value) => {
+    setBool(value)
+  }
+  
   useEffect(() => {
     socket.current = io("ws://localhost:8900")
     socket.current.on("getMessage", (data) => {
@@ -29,14 +42,22 @@ const Home = () => {
         createdAt: Date.now()
       })
     })
+    const getAllUsers = async () => {
+      const users = await fetch('/api/user/', {
+        method: 'GET',
+      })
+      const json = await users.json()
+      setAllUsers(json)
+    }
+    getAllUsers()
   }, [])
-  
+
   useEffect(() => {
     scrollRef.current?.scrollIntoView({behavior: "smooth"})
   }, [message])
 
   useEffect(() => {
-    arrivalMessage && convoId.members.includes(arrivalMessage.sender) &&setMessage((prev) => [...prev, arrivalMessage])
+    arrivalMessage && convoId?.members?.includes(arrivalMessage.sender) && setMessage((prev) => [...prev, arrivalMessage])
   }, [arrivalMessage])
 
   useEffect(() => {
@@ -53,7 +74,7 @@ const Home = () => {
   useEffect(() => {
     socket.current.emit("addUser", sender)
     socket.current.on("getUsers", users=>{
-      // console.log(users)
+      setOnlineUsers(users)
     })
 
     const getConversations = async () => {
@@ -62,13 +83,15 @@ const Home = () => {
           method: 'GET'
         })
         const json = await res.json()
+        const allMembersFiltered = json.flatMap((m) => m.members).filter((m) => m !== sender)
+        setAllMembers(allMembersFiltered)
         setConversations(json)
       }catch(error){
         console.log(error)
       }
     }
     getConversations()
-  }, [sender])
+  }, [sender, bool])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -97,7 +120,14 @@ const Home = () => {
 
   return (
     <>
-    <TopBar/>
+    <div className="topbarContainer">
+        <div className="topbarLeft">
+            <span>Chat App</span>
+        </div>
+        <div className="topbarRight">
+            <span onClick={handleClick}>Logout</span>
+        </div>
+    </div>
     <div className="home">
       <div className="leftbar">
           <div className="leftbarWrapper">
@@ -144,8 +174,14 @@ const Home = () => {
     <div className="rightbar">
         <h3 className="rightbarHeading">Users</h3>
         <div className="rightbarWrapper">
-            <Online/>
-            <Online/>
+          {
+            (allUsers.length > 0 && allMembers.length > 0)&&
+            allUsers.map((user) => {
+              if(user._id !== sender){
+                 return <Online user={user} online={onlineUsers} allMembers={allMembers} convoAdded={convoAdded}/>
+              }
+            })
+          }
         </div>
     </div>
     </div>

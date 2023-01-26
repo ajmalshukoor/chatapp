@@ -1,14 +1,14 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {useLogout} from '../../hooks/useLogout'
 import {useAuthContext} from '../../hooks/useAuthContext'
 import './topbar.css'
 
 const Topbar = () => {
   const {logout} = useLogout()
-  const {user} = useAuthContext()
 
   const handleClick = () => {
       logout()
+      // disconnected("value")
   }
 
   return (
